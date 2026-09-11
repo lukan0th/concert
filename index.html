@@ -5,20 +5,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>точка сбоя</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .bg-poster {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('poster.jpg') center/cover;
+            opacity: 0.3;
+            z-index: -1;
+            filter: grayscale(100%) contrast(1.2);
+        }
+        .container {
+            padding: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        h1 {
+            font-size: 32px;
+            text-align: center;
+            margin: 30px 0 10px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 2px 2px 0 #cc3333;
+        }
+        .info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #fff;
+        }
+        .date { font-size: 20px; margin-bottom: 10px; }
+        .venue { font-size: 14px; color: #888; margin-bottom: 20px; }
+        .lineup { border-top: 1px solid #333; padding-top: 15px; }
+        .band { margin: 8px 0; font-size: 14px; text-transform: uppercase; }
+        
+        .ticket-btn {
+            width: 100%;
+            padding: 20px;
+            background: #cc3333;
+            color: #fff;
+            border: 2px solid #fff;
+            font-size: 18px;
+            font-family: inherit;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        .ticket-btn:hover {
+            background: #fff;
+            color: #000;
+            border-color: #cc3333;
+        }
+        
+        .payment {
+            display: none;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #fff;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .payment.active { display: block; }
+        .phone {
+            font-size: 24px;
+            margin: 20px 0;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .phone:active { color: #cc3333; }
+        .qr-container {
+            margin: 20px auto;
+            background: #fff;
+            padding: 10px;
+            display: inline-block;
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .qr-container:active { transform: scale(0.95); }
+        .sum { font-size: 20px; margin: 15px 0; }
+        .back-btn {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: #fff;
+            border: 1px solid #fff;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* мини-игра */
+        .game-trigger {
+            text-align: center;
+            margin: 30px 0;
+            font-size: 12px;
+            color: #444;
+            cursor: pointer;
+        }
+        .game-trigger:hover { color: #cc3333; }
+        #gameCanvas {
+            display: none;
+            width: 100%;
+            height: 200px;
+            background: #111;
+            border: 1px solid #fff;
+            margin: 20px 0;
+            image-rendering: pixelated;
+        }
+        #gameCanvas.active { display: block; }
+    </style>
 </head>
 <body>
+    <div class="bg-poster"></div>
+    
     <div class="container">
-        <div class="poster-block">
-            <img src="poster.jpg" alt="афиша" class="poster-img">
-        </div>
+        <h1>точка сбоя</h1>
         
-        <div class="info-block">
-            <h1>точка сбоя</h1>
-            <p class="date">17 сентября | 20:00</p>
-            <p class="venue">бар салон | челябинск</p>
-            
+        <div class="info">
+            <div class="date">17 сентября | 20:00</div>
+            <div class="venue">бар салон | челябинск</div>
             <div class="lineup">
                 <div class="band">грязный блок сигарет</div>
                 <div class="band">про воду и утопление</div>
@@ -27,77 +147,155 @@
             </div>
         </div>
 
-        <div class="tariffs" id="tariffs">
-            <h2>выбери билет</h2>
-            <div class="tariff-card" onclick="selectTariff('base')">
-                <div class="tariff-name">базовый</div>
-                <div class="tariff-price">300р</div>
-            </div>
-            <div class="tariff-card discount" onclick="selectTariff('repost')">
-                <div class="tariff-name">с репостом</div>
-                <div class="tariff-price">250р</div>
-                <div class="tariff-hint">сделай репост афиши</div>
-            </div>
-        </div>
-
-        <div class="payment" id="payment" style="display: none;">
+        <button class="ticket-btn" onclick="showPayment()">купить билет — 300₽</button>
+        
+        <div class="payment" id="payment">
             <h2>оплата</h2>
             <p>перевод на озон банк</p>
-            <p class="phone">+7 912 039 76 48</p>
+            <div class="phone" onclick="copyPhone()">+7 912 039 76 48</div>
+            <p style="font-size: 12px; color: #666;">нажми чтобы скопировать</p>
             
-            <div id="qrcode" class="qrcode"></div>
+            <div class="qr-container" onclick="copyPhone()">
+                <canvas id="qrCanvas"></canvas>
+            </div>
             
-            <p class="sum" id="payment-sum">сумма: 300р</p>
-            
-            <button class="pay-btn" onclick="sendData()">я оплатил</button>
-            <button class="back-btn" onclick="backToTariffs()">назад</button>
+            <div class="sum">сумма: 300₽</div>
+            <button class="ticket-btn" onclick="sendData()" style="margin: 10px 0;">я оплатил</button>
+            <button class="back-btn" onclick="hidePayment()">назад</button>
         </div>
+
+        <div class="game-trigger" onclick="toggleGame()">пасхалка (нажми)</div>
+        <canvas id="gameCanvas" width="300" height="200"></canvas>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        let selectedTariff = null;
-        let qrCode = null;
+        let qrGenerated = false;
+        let gameRunning = false;
 
-        function selectTariff(tariff) {
-            selectedTariff = tariff;
-            const sum = tariff === 'repost' ? 250 : 300;
-            
-            document.getElementById('tariffs').style.display = 'none';
-            document.getElementById('payment').style.display = 'block';
-            document.getElementById('payment-sum').textContent = `сумма: ${sum}р`;
-            
-            if (qrCode) {
-                document.getElementById('qrcode').innerHTML = '';
+        function showPayment() {
+            document.getElementById('payment').classList.add('active');
+            if (!qrGenerated) {
+                new QRCode(document.getElementById('qrCanvas'), {
+                    text: '+79120397648',
+                    width: 150,
+                    height: 150,
+                    colorDark: '#000',
+                    colorLight: '#fff'
+                });
+                qrGenerated = true;
             }
-            qrCode = new QRCode(document.getElementById('qrcode'), {
-                text: `+79120397648`,
-                width: 180,
-                height: 180,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
+        }
+
+        function hidePayment() {
+            document.getElementById('payment').classList.remove('active');
+        }
+
+        function copyPhone() {
+            navigator.clipboard.writeText('+79120397648');
+            tg.showPopup({
+                title: 'скопировано',
+                message: 'номер телефона скопирован в буфер обмена',
+                buttons: [{type: 'ok'}]
             });
         }
 
-        function backToTariffs() {
-            selectedTariff = null;
-            document.getElementById('tariffs').style.display = 'block';
-            document.getElementById('payment').style.display = 'none';
-        }
-
         function sendData() {
-            if (!selectedTariff) return;
-            const data = JSON.stringify({ tariff: selectedTariff });
+            const data = JSON.stringify({ tariff: 'base' });
             tg.sendData(data);
             tg.close();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            tg.ready();
-        });
+        // мини-игра: пиксельный чувак ест буквы
+        function toggleGame() {
+            const canvas = document.getElementById('gameCanvas');
+            canvas.classList.toggle('active');
+            if (canvas.classList.contains('active') && !gameRunning) {
+                startGame();
+            }
+        }
+
+        function startGame() {
+            gameRunning = true;
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let player = { x: 140, y: 90, size: 10 };
+            let letters = [];
+            let score = 0;
+            
+            // создаем буквы
+            const chars = 'ГБС СУКА'.split('');
+            for (let i = 0; i < 8; i++) {
+                letters.push({
+                    x: Math.random() * 280,
+                    y: Math.random() * 180,
+                    char: chars[i % chars.length],
+                    eaten: false
+                });
+            }
+            
+            // управление
+            canvas.addEventListener('click', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                
+                // двигаем игрока
+                player.x = clickX - player.size/2;
+                player.y = clickY - player.size/2;
+                
+                // проверяем столкновения
+                letters.forEach(letter => {
+                    if (!letter.eaten &&
+                        Math.abs(player.x - letter.x) < 20 &&
+                        Math.abs(player.y - letter.y) < 20) {
+                        letter.eaten = true;
+                        score++;
+                    }
+                });
+                
+                if (score === letters.length) {
+                    ctx.fillStyle = '#cc3333';
+                    ctx.font = '20px Courier New';
+                    ctx.fillText('ТЫ СЪЕЛ ВСЁ! ПОБЕДА!', 40, 100);
+                }
+            });
+            
+            function draw() {
+                ctx.fillStyle = '#111';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // рисуем игрока
+                ctx.fillStyle = '#cc3333';
+                ctx.fillRect(player.x, player.y, player.size, player.size);
+                
+                // рисуем буквы
+                ctx.fillStyle = '#fff';
+                ctx.font = '16px Courier New';
+                letters.forEach(letter => {
+                    if (!letter.eaten) {
+                        ctx.fillText(letter.char, letter.x, letter.y);
+                    }
+                });
+                
+                // счет
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Courier New';
+                ctx.fillText(`съедено: ${score}/${letters.length}`, 10, 15);
+                
+                if (!letters.every(l => l.eaten)) {
+                    requestAnimationFrame(draw);
+                }
+            }
+            
+            draw();
+        }
+
+        tg.ready();
     </script>
 </body>
 </html>
