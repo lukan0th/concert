@@ -3,29 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>точка сбоя</title>
+    <title>слабости или последствия слабости</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Courier New', monospace;
+            font-family: 'VT323', monospace;
             background: #000;
             color: #fff;
             min-height: 100vh;
-            position: relative;
             overflow-x: hidden;
+            position: relative;
         }
-        .bg-poster {
+        
+        /* видео фон */
+        .video-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('poster.jpg') center/cover;
-            opacity: 0.3;
-            z-index: -1;
-            filter: grayscale(100%) contrast(1.2);
+            object-fit: cover;
+            z-index: -2;
+            opacity: 0.4;
         }
+        .video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: -1;
+        }
+        
         .container {
             padding: 20px;
             max-width: 400px;
@@ -33,158 +46,256 @@
             position: relative;
             z-index: 1;
         }
-        h1 {
-            font-size: 32px;
+        
+        /* заголовок с афишей */
+        .header-poster {
             text-align: center;
-            margin: 30px 0 10px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 2px 2px 0 #cc3333;
+            margin-bottom: 30px;
+            border: 3px solid #fff;
+            padding: 10px;
+            background: rgba(0,0,0,0.8);
         }
+        .header-poster img {
+            width: 100%;
+            max-width: 300px;
+            display: block;
+            margin: 0 auto;
+            image-rendering: pixelated;
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 18px;
+            text-align: center;
+            margin: 30px 0 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #cc3333;
+            text-shadow: 3px 3px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+            line-height: 1.8;
+        }
+        
+        .event-description {
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #fff;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
         .info {
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #fff;
+            background: rgba(0,0,0,0.85);
+            border: 2px solid #fff;
         }
-        .date { font-size: 20px; margin-bottom: 10px; }
-        .venue { font-size: 14px; color: #888; margin-bottom: 20px; }
-        .lineup { border-top: 1px solid #333; padding-top: 15px; }
-        .band { margin: 8px 0; font-size: 14px; text-transform: uppercase; }
+        .date { 
+            font-size: 24px; 
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            font-family: 'Press Start 2P', cursive;
+        }
+        .venue { 
+            font-size: 16px; 
+            color: #cc3333;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+        .band { 
+            font-size: 20px; 
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
         
         .ticket-btn {
             width: 100%;
-            padding: 20px;
+            padding: 22px;
             background: #cc3333;
             color: #fff;
-            border: 2px solid #fff;
+            border: 3px solid #fff;
             font-size: 18px;
-            font-family: inherit;
+            font-family: 'Press Start 2P', cursive;
             text-transform: uppercase;
             cursor: pointer;
             margin: 20px 0;
-            transition: all 0.3s;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+            box-shadow: 4px 4px 0 #fff;
         }
-        .ticket-btn:hover {
+        .ticket-btn:active {
             background: #fff;
             color: #000;
             border-color: #cc3333;
+            box-shadow: 2px 2px 0 #cc3333;
+            transform: translate(2px, 2px);
         }
         
         .payment {
             display: none;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid #fff;
-            padding: 20px;
+            background: rgba(0,0,0,0.95);
+            border: 3px solid #fff;
+            padding: 25px;
             margin-top: 20px;
             text-align: center;
         }
         .payment.active { display: block; }
+        
+        .payment h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            color: #cc3333;
+        }
+        
+        .payment p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        
         .phone {
             font-size: 24px;
             margin: 20px 0;
             cursor: pointer;
             text-decoration: underline;
+            letter-spacing: 2px;
+            font-family: 'Press Start 2P', cursive;
         }
         .phone:active { color: #cc3333; }
+        
         .qr-container {
-            margin: 20px auto;
+            margin: 25px auto;
             background: #fff;
-            padding: 10px;
+            padding: 15px;
             display: inline-block;
             cursor: pointer;
-            border: 2px solid #fff;
+            border: 3px solid #fff;
+            box-shadow: 4px 4px 0 #cc3333;
         }
         .qr-container:active { transform: scale(0.95); }
-        .sum { font-size: 20px; margin: 15px 0; }
+        
+        .sum { 
+            font-size: 24px; 
+            margin: 20px 0;
+            font-weight: bold;
+            font-family: 'Press Start 2P', cursive;
+            color: #cc3333;
+        }
+        
+        .pay-btn {
+            width: 100%;
+            padding: 18px;
+            background: #cc3333;
+            color: #fff;
+            border: 3px solid #fff;
+            font-size: 14px;
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+            cursor: pointer;
+            margin: 10px 0;
+            letter-spacing: 1px;
+            box-shadow: 3px 3px 0 #fff;
+        }
+        .pay-btn:active {
+            background: #fff;
+            color: #000;
+            border-color: #cc3333;
+            box-shadow: 2px 2px 0 #cc3333;
+        }
+        
         .back-btn {
             width: 100%;
             padding: 15px;
             background: transparent;
             color: #fff;
-            border: 1px solid #fff;
-            font-family: inherit;
+            border: 2px solid #fff;
+            font-family: 'VT323', monospace;
             cursor: pointer;
             margin-top: 10px;
+            text-transform: uppercase;
+            font-size: 18px;
+        }
+        .back-btn:active {
+            background: #fff;
+            color: #000;
         }
         
-        /* мини-игра */
-        .game-trigger {
-            text-align: center;
-            margin: 30px 0;
-            font-size: 12px;
-            color: #444;
-            cursor: pointer;
+        .hint {
+            font-size: 14px;
+            color: #888;
+            margin-top: 8px;
         }
-        .game-trigger:hover { color: #cc3333; }
-        #gameCanvas {
-            display: none;
-            width: 100%;
-            height: 200px;
-            background: #111;
-            border: 1px solid #fff;
-            margin: 20px 0;
+        
+        /* пиксельный эффект */
+        .pixel-border {
             image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
         }
-        #gameCanvas.active { display: block; }
     </style>
 </head>
 <body>
-    <div class="bg-poster"></div>
+    <video class="video-bg" autoplay muted loop playsinline>
+        <source src="video.mp4" type="video/mp4">
+    </video>
+    <div class="video-overlay"></div>
     
     <div class="container">
-        <h1>точка сбоя</h1>
+        <div class="header-poster">
+            <img src="poster.jpg" alt="афиша" class="pixel-border">
+        </div>
+        
+        <h1>слабости<br>или<br>последствия<br>слабости</h1>
+        
+        <div class="event-description">
+            <!-- сюда вставишь описание мероприятия -->
+            <p>место для описания мероприятия</p>
+        </div>
         
         <div class="info">
             <div class="date">17 сентября | 20:00</div>
             <div class="venue">бар салон | челябинск</div>
-            <div class="lineup">
-                <div class="band">грязный блок сигарет</div>
-                <div class="band">про воду и утопление</div>
-                <div class="band">стругсёрфинг</div>
-                <div class="band">хапнулвнули</div>
-            </div>
+            <div class="band">грязный блок сигарет</div>
         </div>
 
-        <button class="ticket-btn" onclick="showPayment()">купить билет — 300₽</button>
+        <button class="ticket-btn" onclick="showPayment()">билет — 300₽</button>
         
         <div class="payment" id="payment">
             <h2>оплата</h2>
             <p>перевод на озон банк</p>
             <div class="phone" onclick="copyPhone()">+7 912 039 76 48</div>
-            <p style="font-size: 12px; color: #666;">нажми чтобы скопировать</p>
+            <p class="hint">нажми чтобы скопировать</p>
             
             <div class="qr-container" onclick="copyPhone()">
-                <canvas id="qrCanvas"></canvas>
+                <div id="qrcode"></div>
             </div>
             
-            <div class="sum">сумма: 300₽</div>
-            <button class="ticket-btn" onclick="sendData()" style="margin: 10px 0;">я оплатил</button>
+            <div class="sum">300₽</div>
+            <button class="pay-btn" onclick="sendData()">я оплатил</button>
             <button class="back-btn" onclick="hidePayment()">назад</button>
         </div>
-
-        <div class="game-trigger" onclick="toggleGame()">пасхалка (нажми)</div>
-        <canvas id="gameCanvas" width="300" height="200"></canvas>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         
         let qrGenerated = false;
-        let gameRunning = false;
 
         function showPayment() {
             document.getElementById('payment').classList.add('active');
             if (!qrGenerated) {
-                new QRCode(document.getElementById('qrCanvas'), {
+                new QRCode(document.getElementById('qrcode'), {
                     text: '+79120397648',
-                    width: 150,
-                    height: 150,
-                    colorDark: '#000',
-                    colorLight: '#fff'
+                    width: 180,
+                    height: 180,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
                 });
                 qrGenerated = true;
             }
@@ -198,7 +309,7 @@
             navigator.clipboard.writeText('+79120397648');
             tg.showPopup({
                 title: 'скопировано',
-                message: 'номер телефона скопирован в буфер обмена',
+                message: 'номер телефона скопирован',
                 buttons: [{type: 'ok'}]
             });
         }
@@ -207,92 +318,6 @@
             const data = JSON.stringify({ tariff: 'base' });
             tg.sendData(data);
             tg.close();
-        }
-
-        // мини-игра: пиксельный чувак ест буквы
-        function toggleGame() {
-            const canvas = document.getElementById('gameCanvas');
-            canvas.classList.toggle('active');
-            if (canvas.classList.contains('active') && !gameRunning) {
-                startGame();
-            }
-        }
-
-        function startGame() {
-            gameRunning = true;
-            const canvas = document.getElementById('gameCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            let player = { x: 140, y: 90, size: 10 };
-            let letters = [];
-            let score = 0;
-            
-            // создаем буквы
-            const chars = 'ГБС СУКА'.split('');
-            for (let i = 0; i < 8; i++) {
-                letters.push({
-                    x: Math.random() * 280,
-                    y: Math.random() * 180,
-                    char: chars[i % chars.length],
-                    eaten: false
-                });
-            }
-            
-            // управление
-            canvas.addEventListener('click', (e) => {
-                const rect = canvas.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                const clickY = e.clientY - rect.top;
-                
-                // двигаем игрока
-                player.x = clickX - player.size/2;
-                player.y = clickY - player.size/2;
-                
-                // проверяем столкновения
-                letters.forEach(letter => {
-                    if (!letter.eaten &&
-                        Math.abs(player.x - letter.x) < 20 &&
-                        Math.abs(player.y - letter.y) < 20) {
-                        letter.eaten = true;
-                        score++;
-                    }
-                });
-                
-                if (score === letters.length) {
-                    ctx.fillStyle = '#cc3333';
-                    ctx.font = '20px Courier New';
-                    ctx.fillText('ТЫ СЪЕЛ ВСЁ! ПОБЕДА!', 40, 100);
-                }
-            });
-            
-            function draw() {
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // рисуем игрока
-                ctx.fillStyle = '#cc3333';
-                ctx.fillRect(player.x, player.y, player.size, player.size);
-                
-                // рисуем буквы
-                ctx.fillStyle = '#fff';
-                ctx.font = '16px Courier New';
-                letters.forEach(letter => {
-                    if (!letter.eaten) {
-                        ctx.fillText(letter.char, letter.x, letter.y);
-                    }
-                });
-                
-                // счет
-                ctx.fillStyle = '#666';
-                ctx.font = '12px Courier New';
-                ctx.fillText(`съедено: ${score}/${letters.length}`, 10, 15);
-                
-                if (!letters.every(l => l.eaten)) {
-                    requestAnimationFrame(draw);
-                }
-            }
-            
-            draw();
         }
 
         tg.ready();
