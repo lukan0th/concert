@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>точка сбоя</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="poster-block">
+            <img src="poster.jpg" alt="афиша" class="poster-img">
+        </div>
+        
+        <div class="info-block">
+            <h1>точка сбоя</h1>
+            <p class="date">17 сентября | 20:00</p>
+            <p class="venue">бар салон | челябинск</p>
+            
+            <div class="lineup">
+                <div class="band">грязный блок сигарет</div>
+                <div class="band">про воду и утопление</div>
+                <div class="band">стругсёрфинг</div>
+                <div class="band">хапнулвнули</div>
+            </div>
+        </div>
+
+        <div class="tariffs" id="tariffs">
+            <h2>выбери билет</h2>
+            <div class="tariff-card" onclick="selectTariff('base')">
+                <div class="tariff-name">базовый</div>
+                <div class="tariff-price">300р</div>
+            </div>
+            <div class="tariff-card discount" onclick="selectTariff('repost')">
+                <div class="tariff-name">с репостом</div>
+                <div class="tariff-price">250р</div>
+                <div class="tariff-hint">сделай репост афиши</div>
+            </div>
+        </div>
+
+        <div class="payment" id="payment" style="display: none;">
+            <h2>оплата</h2>
+            <p>перевод на озон банк</p>
+            <p class="phone">+7 912 039 76 48</p>
+            
+            <div id="qrcode" class="qrcode"></div>
+            
+            <p class="sum" id="payment-sum">сумма: 300р</p>
+            
+            <button class="pay-btn" onclick="sendData()">я оплатил</button>
+            <button class="back-btn" onclick="backToTariffs()">назад</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        let selectedTariff = null;
+        let qrCode = null;
+
+        function selectTariff(tariff) {
+            selectedTariff = tariff;
+            const sum = tariff === 'repost' ? 250 : 300;
+            
+            document.getElementById('tariffs').style.display = 'none';
+            document.getElementById('payment').style.display = 'block';
+            document.getElementById('payment-sum').textContent = `сумма: ${sum}р`;
+            
+            if (qrCode) {
+                document.getElementById('qrcode').innerHTML = '';
+            }
+            qrCode = new QRCode(document.getElementById('qrcode'), {
+                text: `+79120397648`,
+                width: 180,
+                height: 180,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function backToTariffs() {
+            selectedTariff = null;
+            document.getElementById('tariffs').style.display = 'block';
+            document.getElementById('payment').style.display = 'none';
+        }
+
+        function sendData() {
+            if (!selectedTariff) return;
+            const data = JSON.stringify({ tariff: selectedTariff });
+            tg.sendData(data);
+            tg.close();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            tg.ready();
+        });
+    </script>
+</body>
+</html>
