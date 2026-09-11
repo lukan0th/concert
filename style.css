@@ -1,0 +1,152 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 10px;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 400px;
+    margin: 0 auto;
+    border: 1px solid #fff;
+    padding: 10px;
+}
+
+.poster-block {
+    margin-bottom: 20px;
+    border: 1px solid #fff;
+}
+
+.poster-img {
+    width: 100%;
+    display: block;
+}
+
+.info-block {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #333;
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.date {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.venue {
+    font-size: 14px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.lineup {
+    border-top: 1px solid #333;
+    padding-top: 15px;
+}
+
+.band {
+    font-size: 14px;
+    margin: 8px 0;
+    text-transform: uppercase;
+}
+
+.tariffs h2, .payment h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    font-size: 18px;
+}
+
+.tariff-card {
+    background: #000;
+    border: 1px solid #fff;
+    padding: 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.tariff-card:hover {
+    background: #fff;
+    color: #000;
+}
+
+.tariff-name {
+    font-size: 18px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.tariff-price {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.tariff-hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 8px;
+}
+
+.tariff-card:hover .tariff-hint {
+    color: #000;
+}
+
+.payment {
+    padding: 15px;
+    border: 1px solid #333;
+    text-align: center;
+}
+
+.phone {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 20px 0;
+    letter-spacing: 1px;
+}
+
+.qrcode {
+    margin: 20px auto;
+    background: #fff;
+    padding: 10px;
+    display: inline-block;
+}
+
+.sum {
+    font-size: 18px;
+    margin: 20px 0;
+}
+
+.pay-btn, .back-btn {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    font-size: 14px;
+    font-family: inherit;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.pay-btn:hover, .back-btn:hover {
+    background: #fff;
+    color: #000;
+}
